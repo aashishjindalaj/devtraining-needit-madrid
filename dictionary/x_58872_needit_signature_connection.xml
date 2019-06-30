@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><database>
-    <element label="Signature Connection" max_length="40" name="x_58872_needit_signature_connection" type="collection">
-        <element label="Record Sys Id" max_length="500" name="record_sys_id" type="string"/>
-        <element label="Record Table" max_length="500" name="record_table" type="string"/>
-        <element label="Signature Image Sys Id" max_length="500" name="signature_image_sys_id" type="string"/>
-        <element label="Signature Table" max_length="500" name="signature_table" type="string"/>
-    </element>
-</database>
