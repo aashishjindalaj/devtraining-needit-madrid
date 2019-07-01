@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="ecc_agent_script_include">
+    <ecc_agent_script_include action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <description/>
+        <name>FileExportUtils</name>
+        <script><![CDATA[var FileExportUtils = Class.create();
+
+FileExportUtils.prototype = 
+{
+	initialize : function()
+	{
+		this.StringUtil = Packages.com.glide.util.StringUtil;
+		this.File = Packages.java.io.File;
+		this.String = Packages.java.lang.String;
+		this.FileOutputStream = Packages.java.io.FileOutputStream;
+		this.FileInputStream = Packages.java.io.FileInputStream;
+		this.InputStreamReader = Packages.java.io.InputStreamReader;
+		this.BufferedReader = Packages.java.io.BufferedReader;
+		this.URL = Packages.java.net.URL;
+		this.URLConnection = Packages.java.net.URLConnection;
+		this.Base64 = Packages.java.util.Base64;
+		this.Base64Encoder = Packages.java.util.Base64.Encoder;
+		this.DataOutputStream = Packages.java.io.DataOutputStream;
+		
+		// zip packages
+		this.ZipOutputStream = Packages.java.util.zip.ZipOutputStream;
+		this.ZipEntry = Packages.java.util.zip.ZipEntry;
+		this.Files = Packages.java.nio.file.Files;
+		
+		this.fileName = probe.getParameter('fileName');
+		this.dataSourceSysID = probe.getParameter('dataSourceSysID');
+		this.instanceName = probe.getParameter('instanceName');
+		this.restUserName = probe.getParameter('restUserName');
+		this.restPassword = probe.getParameter('restPassword');
+		this.folderName = probe.getParameter('folderName');
+		this.importPath = probe.getParameter('importPath');
+		
+	},
+	
+	triggerDataUpload : function()
+	{
+		this._log("DATALOADUTILS method called");
+		
+		var restUserName = this.restUserName;
+		var restPassword = this.restPassword;
+		var authData = restUserName + ":" + restPassword;
+		
+		var authEncData = this.StringUtil.base64Encode(authData);
+		this._log("DATALOADUTILS before fileName is:"+authEncData);
+		
+		this.fileName = this.fileName.toString().replaceAll(' ','%20');
+		this._log("DATALOADUTILS after fileName is:"+this.fileName);
+		
+		var tableName = 'sys_data_source';
+		var attachmentURL = "https://" + this.instanceName + ".service-now.com/api/now/attachment/file?table_name=" + tableName + "&table_sys_id=" + this.dataSourceSysID + "&file_name="+this.fileName;
+		this._log("DATALOADUTILS attachment URL is:"+attachmentURL);
+		
+		var urlObj = new this.URL(attachmentURL);
+		var urlConnObj = urlObj.openConnection();
+		
+		this._log("DATALOADUTILS after openConnection is:");
+		
+		urlConnObj.setRequestMethod("POST");
+		urlConnObj.setRequestProperty("Authorization", "Basic " + authEncData);
+		urlConnObj.setRequestProperty("Content-Type", "application/json");
+		urlConnObj.setRequestProperty("charset", "utf-8");
+		urlConnObj.setUseCaches(false);
+		urlConnObj.setDoOutput(true);
+		urlConnObj.connect();
+		this._log("DATALOADUTILS after connection is:");
+		
+		var dos = new this.DataOutputStream(urlConnObj.getOutputStream());
+		
+		//var filePath = "C:/Mid Servers/mid.helsinki-GE/agent/export/DataLoad/"+ this.folderName + "/" + this.fileName;
+		this._log("DATALOADUTILS IMPORT PATH IS :" + this.importPath);
+		this._log("DATALOADUTILS FOLDER NAME IS :" + this.folderName);
+		this._log("DATALOADUTILS FILE NAME IS :" + this.fileName);
+		
+		var filePath = this.importPath + this.folderName + "/" + this.fileName;
+		this._log("DATALOADUTILS FilePATH IS :" + filePath);
+		var toBeLoadedFile = new this.File(filePath);
+		if(toBeLoadedFile.exists())
+		{
+		var bytes = [];
+		//bytes = new this.Files.readAllBytes(new this.File("C:/Mid Servers/mid.helsinki-GE/agent/export/DataLoad/"+this.folderName+"/"+this.fileName).toPath());
+		this._log("INSIDE TO BE LOADED :" + toBeLoadedFile);
+			this._log("filePATH VALUE IS  :" + filePath);
+		bytes = new this.Files.readAllBytes(new this.File(filePath).toPath());	
+		//bytes = new this.Files.readAllBytes(toBeLoadedFile.toPath());
+		this._log("BYTES IS::::" + bytes);
+		dos.write(bytes);
+		this._log("DATALOADUTILS after writing bytes is:");
+		dos.flush();
+		dos.close();
+		
+		var isr1 = new this.InputStreamReader(urlConnObj.getInputStream());
+		var br1 = new this.BufferedReader(isr1);
+		var line1 = "";
+		while((line1 = br1.readLine()) != null){
+			var trimdLine = line1.trim();
+			this._log("DATALOADUTILS output is:"+trimdLine);
+		}
+			urlConnObj.disconnect();
+			probe.createElement("agent_correlator","Success-"+this.dataSourceSysID);
+			probe.createElement("fileName",this.fileName);
+		}
+		else{
+			this._log("OUTSIDE TO BE LOADED :" + toBeLoadedFile);
+			probe.createElement("agent_correlator","Failure-"+this.dataSourceSysID+"-File Not found");
+			probe.createElement("fileName",this.fileName);
+		}	
+	},
+	
+	_log: function(data) {
+		ms.log(data);
+	},
+	
+	
+type : "FileExportUtils"
+};]]></script>
+        <sys_class_name>ecc_agent_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-06-30 21:35:24</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>892cd7eedbd67300478ba0f2ca9619a2</sys_id>
+        <sys_mod_count>15</sys_mod_count>
+        <sys_name>FileExportUtils</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="NeedIt" source="x_58872_needit">6ead8e780f603200cd674f8ce1050ed1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="NeedIt">6ead8e780f603200cd674f8ce1050ed1</sys_scope>
+        <sys_update_name>ecc_agent_script_include_892cd7eedbd67300478ba0f2ca9619a2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-07-01 00:15:37</sys_updated_on>
+    </ecc_agent_script_include>
+</record_update>

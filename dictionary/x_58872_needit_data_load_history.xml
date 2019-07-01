@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Data Load History" max_length="40" name="x_58872_needit_data_load_history" type="collection">
+        <element label="Data Source" max_length="40" name="data_source" reference="sys_data_source" type="reference"/>
+        <element label="FileName" max_length="40" name="filename" type="string"/>
+        <element label="State" max_length="40" name="state" type="string"/>
+    </element>
+</database>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_58872_needit.IntegrationUtils</api_name>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>IntegrationUtils</name>
+        <script><![CDATA[var IntegrationUtils = Class.create();
+IntegrationUtils.prototype = {
+    initialize: function() {
+    },
+	
+	triggerDataUpload : function (fileName,dataSourceSysID,folderName)
+	{
+		
+		gs.info("Inside the IntegrationUtils script include");
+		
+		var midServerName = gs.getProperty("MidServer.name");
+		var instanceName = gs.getProperty("instance_name");
+		var restUserName = gs.getProperty("rest_username");
+		var restPassword = gs.getProperty("rest_password");
+		var importPath = gs.getProperty("needItTask_import_folder");
+		
+		var xmlDoc = '<?xml version="1.0" encoding="UTF-8"?><parameters><parameter name = "script" value = "${script}"/><parameter name = "fileName" value = "${fileName}"/><parameter name = "dataSourceSysID" value = "${dataSourceSysID}"/><parameter name = "midServerName" value = "${midServerName}"/><parameter name="folderName" value="${folderName}"/><parameter name = "instanceName" value = "${instanceName}"/><parameter name = "restUserName" value = "${restUserName}"/><parameter name = "restPassword" value = "${restPassword}"/><parameter name = "importPath" value = "${importPath}"/></parameters>';
+		
+		var script = 'var parserObj = new FileExportUtils(); parserObj.triggerDataUpload();';
+		
+		xmlDoc = xmlDoc.replace("${script}",script);
+		xmlDoc = xmlDoc.replace("${fileName}",fileName);
+		xmlDoc = xmlDoc.replace("${dataSourceSysID}",dataSourceSysID);
+		xmlDoc = xmlDoc.replace("${midServerName}",midServerName);
+		xmlDoc = xmlDoc.replace("${instanceName}",instanceName);
+		xmlDoc = xmlDoc.replace("${restUserName}",restUserName);
+		xmlDoc = xmlDoc.replace("${restPassword}",restPassword);
+		xmlDoc = xmlDoc.replace("${folderName}", folderName);
+		xmlDoc = xmlDoc.replace("${importPath}",importPath);
+		
+		gs.info("SCript to Export File Utils ::::::" + script );
+		
+		this._insertRecordInECCQueue(midServerName,xmlDoc,"NeedItTaskRecords");
+		
+		var dataLoadHistory = new GlideRecord("x_58872_needit_data_load_history");
+		dataLoadHistory.initialize();
+		dataLoadHistory.fileName = fileName.toString();
+		dataLoadHistory.data_source = dataSourceSysID;
+		dataLoadHistory.state = "Pending";
+		dataLoadHistory.insert();
+		
+	},
+	
+	_insertRecordInECCQueue : function (midServerName,xmlDoc,name)
+	{
+		try
+			{
+				var eccQueueGR = new GlideRecord("ecc_queue");
+				eccQueueGR.agent = "mid.server." + midServerName;
+				eccQueueGR.queue = "output";
+				eccQueueGR.state = "ready";
+				eccQueueGR.topic = "JavascriptProbe";
+				eccQueueGR.name = name;
+				eccQueueGR.source = "";
+				eccQueueGR.payload = xmlDoc.toString();
+				var sysID = eccQueueGR.insert();
+				
+				gs.info("Payload is . :::::::::::" + xmlDoc.toString());
+				gs.info("SysID is :::::::" + sysID);
+				
+				if(x_58872_needit.JSUtil.nil(sysID))
+					{
+						gs.error("Error while inserting record into ECC queue ::::::::::::::" + xmlDoc.toString() + "error::::" + eccQueueGR.getLastErrorMessage());
+					}	
+			}
+		catch (err)
+			{
+				gs.error("Error message is :::::::::::" + err.message);
+			}
+	},
+
+    type: 'IntegrationUtils'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-06-30 21:34:37</sys_created_on>
+        <sys_id>a8fb57eedbd67300478ba0f2ca96190d</sys_id>
+        <sys_mod_count>11</sys_mod_count>
+        <sys_name>IntegrationUtils</sys_name>
+        <sys_package display_value="NeedIt" source="x_58872_needit">6ead8e780f603200cd674f8ce1050ed1</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="NeedIt">6ead8e780f603200cd674f8ce1050ed1</sys_scope>
+        <sys_update_name>sys_script_include_a8fb57eedbd67300478ba0f2ca96190d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-06-30 23:50:49</sys_updated_on>
+    </sys_script_include>
+</record_update>
